@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volleyball Rotation Tracker</title>
+    <style>
+        :root {
+            --court-color: #e59c6b;
+            --line-color: #ffffff;
+            --bg-color: #1a1a1a;
+            --text-color: #f0f0f0;
+            --accent: #4CAF50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { margin-bottom: 5px; }
+        p.subtitle { color: #aaa; margin-bottom: 20px; }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            max-width: 1000px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .setup-panel {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #333;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: #45a049; }
+        button.secondary { background-color: #555; }
+        button.secondary:hover { background-color: #666; }
+
+        .court-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .net {
+            width: 320px;
+            height: 10px;
+            background: repeating-linear-gradient(45deg, #444, #444 5px, #222 5px, #222 10px);
+            border: 2px solid white;
+            margin-bottom: -2px;
+            z-index: 2;
+        }
+
+        .court {
+            width: 320px;
+            height: 320px;
+            background-color: var(--court-color);
+            border: 4px solid var(--line-color);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            position: relative;
+        }
+
+        /* Attack line */
+        .court::after {
+            content: '';
+            position: absolute;
+            top: 33.33%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: var(--line-color);
+        }
+
+        .zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 5px;
+            z-index: 1;
+        }
+
+        .player-badge {
+            background: #222;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .role-badge {
+            font-size: 0.7em;
+            background: var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+        }
+
+        .rotation-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .rot-circle {
+            background: #333;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Volleyball Rotations</h1>
+    <p class="subtitle">Your lineup is saved privately on this browser.</p>
+
+    <div class="container">
+        <!-- SETUP PANEL -->
+        <div class="setup-panel">
+            <div class="form-group">
+                <label>Rotation System</label>
+                <select id="systemSelect" onchange="updateLabels()">
+                    <option value="5-1">5-1 (1 Setter, 1 Opposite)</option>
+                    <option value="6-2">6-2 (2 Setters, 3 Hitters)</option>
+                    <option value="4-2">4-2 (2 Setters in Front Row)</option>
+                </select>
+            </div>
+
+            <div id="playerInputs">
+                <!-- Inputs generated by JS -->
+            </div>
+
+            <div class="btn-group">
+                <button onclick="saveLineup()">Save & Update Court</button>
+                <button class="secondary" onclick="clearLineup()">Clear</button>
+            </div>
+        </div>
+
+        <!-- COURT PANEL -->
+        <div class="court-panel">
+            <div class="net"></div>
+            <div class="court">
+                <!-- Top Row (Front Row: Pos 4, 3, 2) -->
+                <div class="zone" id="pos4"></div>
+                <div class="zone" id="pos3"></div>
+                <div class="zone" id="pos2"></div>
+                <!-- Bottom Row (Back Row: Pos 5, 6, 1) -->
+                <div class="zone" id="pos5"></div>
+                <div class="zone" id="pos6"></div>
+                <div class="zone" id="pos1"></div>
+            </div>
+
+            <div class="rotation-controls">
+                <button class="secondary" onclick="rotateCourt(-1)">Reverse</button>
+                <div class="rot-circle">R<span id="rotNum">1</span></div>
+                <button onclick="rotateCourt(1)">Rotate >></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data configurations for different systems
+        const systems = {
+            "5-1": ["Setter", "Outside 1", "Middle 1", "Opposite", "Outside 2", "Middle 2"],
+            "6-2": ["Setter 1", "Outside 1", "Middle 1", "Setter 2", "Outside 2", "Middle 2"],
+            "4-2": ["Setter 1", "Outside 1", "Middle 1", "Setter 2", "Outside 2", "Middle 2"]
+        };
+
+        let currentRotation = 1;
+        // Array mapping to positions: [Pos1, Pos2, Pos3, Pos4, Pos5, Pos6]
+        let lineup = Array(6).fill({ name: "", role: "" }); 
+
+        function init() {
+            updateLabels();
+            loadLineup();
+        }
+
+        // Updates input labels based on chosen system
+        function updateLabels() {
+            const system = document.getElementById("systemSelect").value;
+            const roles = systems[system];
+            const container = document.getElementById("playerInputs");
+            
+            // Only rebuild inputs if it's the first load, otherwise just update labels to keep names
+            if (container.innerHTML === "") {
+                roles.forEach((role, i) => {
+                    container.innerHTML += `
+                        <div class="form-group">
+                            <label id="label-${i}">${role} (Starting Position ${i+1})</label>
+                            <input type="text" id="player-${i}" placeholder="Enter name...">
+                        </div>
+                    `;
+                });
+            } else {
+                roles.forEach((role, i) => {
+                    document.getElementById(`label-${i}`).innerText = `${role} (Starting Position ${i+1})`;
+                });
+            }
+        }
+
+        // Save data to localStorage (private to user's browser)
+        function saveLineup() {
+            const system = document.getElementById("systemSelect").value;
+            const roles = systems[system];
+            let newArray = [];
+            
+            for(let i=0; i<6; i++) {
+                const name = document.getElementById(`player-${i}`).value || `Player ${i+1}`;
+                newArray.push({ name: name, role: roles[i] });
+            }
+
+            lineup = newArray;
+            currentRotation = 1;
+            
+            const saveData = {
+                system: system,
+                players: lineup
+            };
+            
+            localStorage.setItem("volleyLineup", JSON.stringify(saveData));
+            updateCourt();
+        }
+
+        // Load data on page load
+        function loadLineup() {
+            const saved = localStorage.getItem("volleyLineup");
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.getElementById("systemSelect").value = data.system;
+                updateLabels();
+                
+                lineup = data.players;
+                for(let i=0; i<6; i++) {
+                    document.getElementById(`player-${i}`).value = lineup[i].name;
+                }
+                updateCourt();
+            } else {
+                saveLineup(); // initialize with defaults
+            }
+        }
+
+        function clearLineup() {
+            for(let i=0; i<6; i++) {
+                document.getElementById(`player-${i}`).value = "";
+            }
+            localStorage.removeItem("volleyLineup");
+            saveLineup();
+        }
+
+        // Shift players in the array to mimic volleyball rotation
+        function rotateCourt(direction) {
+            if (direction === 1) { // Normal rotation (clockwise on court)
+                // In array [P1, P2, P3, P4, P5, P6]
+                // P2 goes to P1 to serve. Shift left.
+                lineup.push(lineup.shift());
+                currentRotation = currentRotation === 6 ? 1 : currentRotation + 1;
+            } else { // Reverse rotation
+                lineup.unshift(lineup.pop());
+                currentRotation = currentRotation === 1 ? 6 : currentRotation - 1;
+            }
+            updateCourt();
+        }
+
+        // Draw players in the correct zones
+        function updateCourt() {
+            document.getElementById("rotNum").innerText = currentRotation;
+            
+            // Court mapping:
+            // Pos 4 (Top Left)   | Pos 3 (Top Mid)    | Pos 2 (Top Right)
+            // Pos 5 (Bot Left)   | Pos 6 (Bot Mid)    | Pos 1 (Bot Right/Serve)
+            
+            const positions = [
+                { id: "pos1", index: 0 }, // Position 1
+                { id: "pos2", index: 1 }, // Position 2
+                { id: "pos3", index: 2 }, // Position 3
+                { id: "pos4", index: 3 }, // Position 4
+                { id: "pos5", index: 4 }, // Position 5
+                { id: "pos6", index: 5 }  // Position 6
+            ];
+
+            positions.forEach(pos => {
+                const player = lineup[pos.index];
+                document.getElementById(pos.id).innerHTML = `
+                    <div class="player-badge">${player.name}</div>
+                    <div class="role-badge">${player.role}</div>
+                `;
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
