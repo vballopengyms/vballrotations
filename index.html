@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>13U Titans 6-2 Rotation Tracker</title>
+    <title>13U Titans Animated Rotation Tracker</title>
     <style>
         :root {
             --court-color: #e59c6b;
@@ -11,7 +11,6 @@
             --bg-color: #1a1a1a;
             --text-color: #f0f0f0;
             --accent: #4CAF50;
-            --arrow-color: #ffeb3b;
         }
 
         body {
@@ -45,38 +44,12 @@
             max-width: 320px;
         }
 
-        .form-group {
-            margin-bottom: 12px;
-        }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-size: 0.85em; color: #ccc; }
+        input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
 
-        label {
-            display: block;
-            margin-bottom: 4px;
-            font-size: 0.85em;
-            color: #ccc;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #444;
-            background: #333;
-            color: white;
-            box-sizing: border-box;
-        }
-
-        .mode-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .mode-toggle button {
-            flex: 1;
-            padding: 8px;
-            font-size: 0.85em;
-        }
+        .mode-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .mode-toggle button { flex: 1; padding: 8px; font-size: 0.85em; }
 
         button {
             padding: 10px 15px;
@@ -93,15 +66,12 @@
         button.secondary { background-color: #555; }
         button.secondary:hover { background-color: #666; }
         button.active { background-color: #2196F3; }
+        button.motion-btn { background-color: #FF9800; width: 100%; margin-top: 10px; }
 
-        .court-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .court-panel { display: flex; flex-direction: column; align-items: center; }
 
         .net {
-            width: 340px;
+            width: 360px;
             height: 10px;
             background: repeating-linear-gradient(45deg, #444, #444 5px, #222 5px, #222 10px);
             border: 2px solid white;
@@ -110,14 +80,12 @@
         }
 
         .court {
-            width: 340px;
-            height: 340px;
+            width: 360px;
+            height: 360px;
             background-color: var(--court-color);
             border: 4px solid var(--line-color);
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
             position: relative;
+            overflow: hidden;
         }
 
         .court::after {
@@ -130,92 +98,59 @@
             background-color: var(--line-color);
         }
 
-        .zone {
+        .player-token {
+            position: absolute;
+            width: 90px;
+            height: 55px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            padding: 5px;
-            z-index: 1;
-            position: relative;
+            /* Smooth Motion Transition */
+            transition: left 0.8s ease-in-out, top 0.8s ease-in-out;
+            z-index: 3;
         }
 
         .player-badge {
             background: #222;
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 3px 6px;
+            border-radius: 10px;
             font-weight: bold;
-            font-size: 0.85em;
+            font-size: 0.8em;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            margin-bottom: 2px;
-            max-width: 90%;
+            max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
         .role-badge {
-            font-size: 0.7em;
-            padding: 2px 6px;
+            font-size: 0.65em;
+            padding: 2px 5px;
             border-radius: 4px;
             color: white;
             font-weight: bold;
-        }
-
-        /* Color Coding based on Coach's Charts */
-        .role-S { background-color: #d32f2f; }   /* Red/Maroon for Setter */
-        .role-OH1 { background-color: #7b1fa2; } /* Purple for OH1 */
-        .role-OH2 { background-color: #0288d1; } /* Light Blue for OH2 */
-        .role-M1 { background-color: #c2185b; }  /* Pink/Magenta for M1 */
-        .role-M2 { background-color: #e91e63; }  /* Light Pink for M2 */
-        .role-OP { background-color: #388e3c; }  /* Green for Opposite */
-        .role-L { background-color: #fbc02d; color: #000; }   /* Yellow for Libero */
-
-        .arrow-indicator {
-            font-size: 0.75em;
-            color: var(--arrow-color);
-            font-weight: bold;
             margin-top: 2px;
-            background: rgba(0,0,0,0.6);
-            padding: 1px 4px;
-            border-radius: 3px;
         }
 
-        .rotation-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
+        .role-S { background-color: #d32f2f; }
+        .role-OH1 { background-color: #7b1fa2; }
+        .role-OH2 { background-color: #0288d1; }
+        .role-M1 { background-color: #c2185b; }
+        .role-M2 { background-color: #e91e63; }
+        .role-OP { background-color: #388e3c; }
+        .role-L { background-color: #fbc02d; color: #000; }
 
-        .rot-circle {
-            background: #333;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .sub-notice {
-            margin-top: 10px;
-            font-size: 0.8em;
-            color: #ffb74d;
-            background: #332701;
-            padding: 6px;
-            border-radius: 4px;
-            border: 1px solid #ffb74d;
-        }
+        .rotation-controls { margin-top: 20px; display: flex; gap: 15px; align-items: center; }
+        .rot-circle { background: #333; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .sub-notice { margin-top: 10px; font-size: 0.8em; color: #ffb74d; background: #332701; padding: 6px; border-radius: 4px; border: 1px solid #ffb74d; }
     </style>
 </head>
 <body>
 
     <h1>Volleyball Rotation Tracker</h1>
-    <div class="subtitle">System: 13U Titans (Coach 6-2 Charts)</div>
+    <div class="subtitle">System: 13U Titans (Animated Motion)</div>
 
     <div class="container">
         <!-- SETUP PANEL -->
@@ -228,25 +163,18 @@
                 </div>
             </div>
 
-            <div id="playerInputs"></div>
+            <button id="btnMotion" class="motion-btn" onclick="toggleMotion()">▶ Animate Shift / Transition</button>
+
+            <div id="playerInputs" style="margin-top:15px;"></div>
             <div id="subAlert" class="sub-notice" style="display:none;">
-                ⚠️ <strong>Front-Row Sub:</strong> Nay Nay rotates out to back row / S2 (Kathy / Kai) enters at position 1.
+                ⚠️ <strong>Front-Row Sub:</strong> Nay Nay rotates out / S2 (Kathy / Kai) enters at position 1.
             </div>
         </div>
 
         <!-- COURT PANEL -->
         <div class="court-panel">
             <div class="net"></div>
-            <div class="court">
-                <!-- Front Row (Pos 4, 3, 2) -->
-                <div class="zone" id="pos4"></div>
-                <div class="zone" id="pos3"></div>
-                <div class="zone" id="pos2"></div>
-                <!-- Back Row (Pos 5, 6, 1) -->
-                <div class="zone" id="pos5"></div>
-                <div class="zone" id="pos6"></div>
-                <div class="zone" id="pos1"></div>
-            </div>
+            <div class="court" id="courtArea"></div>
 
             <div class="rotation-controls">
                 <button class="secondary" onclick="rotateCourt(-1)">Reverse</button>
@@ -258,488 +186,143 @@
 
     <script>
         let currentRotation = 1;
-        let phase = 'serving'; // 'serving' or 'sr'
+        let phase = 'serving';
+        let isShifted = false;
 
-        // Default roster mapping
         let players = {
-            S1: "Nay Nay",
-            S2: "Kathy / Kai",
-            OH1: "Eiza",
-            OH2: "Daisy",
-            M1: "Reb",
-            M2: "Janelle",
-            OP: "Teresa",
-            L: "Janelle (L)"
+            S1: "Nay Nay", S2: "Kathy / Kai",
+            OH1: "Eiza", OH2: "Daisy",
+            M1: "Reb", M2: "Janelle",
+            OP: "Teresa", L: "Janelle (L)"
         };
 
-        // Rotation map matching coach's charts exactly (Pos 1 to Pos 6)
-        // Pos 1 = Back Right, Pos 2 = Front Right, Pos 3 = Front Mid, Pos 4 = Front Left, Pos 5 = Back Left, Pos 6 = Back Mid
+        // Grid coordinates in pixels (left, top) for standard court positions
+        const standardCoords = {
+            1: { left: 240, top: 250 }, // Pos 1 (Back Right)
+            2: { left: 240, top: 50 },  // Pos 2 (Front Right)
+            3: { left: 135, top: 50 },  // Pos 3 (Front Center)
+            4: { left: 30,  top: 50 },  // Pos 4 (Front Left)
+            5: { left: 30,  top: 250 }, // Pos 5 (Back Left)
+            6: { left: 135, top: 250 }  // Pos 6 (Back Center)
+        };
+
+        // Shifted base positions after serve/receive
+        const shiftedCoords = {
+            1: { left: 240, top: 250 }, // Setter/Oppo base
+            2: { left: 240, top: 30 },  // Setter/Oppo front base
+            3: { left: 135, top: 30 },  // Middle front base
+            4: { left: 30,  top: 30 },  // Outside front base
+            5: { left: 30,  top: 250 }, // Outside back base
+            6: { left: 135, top: 250 }  // Libero/Middle back base
+        };
+
         const rotationData = {
-            1: {
-                serving: [
-                    { role: "S", code: "S1", pos: 1, arrow: "Run to Front Target" },
-                    { role: "OH1", code: "OH1", pos: 2, arrow: "← Cross to Pos 4" },
-                    { role: "M2", code: "M2", pos: 3, arrow: "Base Pos 3" },
-                    { role: "OP", code: "OP", pos: 4, arrow: "Shift Right → Pos 2" },
-                    { role: "OH2", code: "OH2", pos: 5, arrow: "Base Pos 5" },
-                    { role: "L", code: "L", pos: 6, arrow: "Base Pos 6" }
-                ],
-                sr: [
-                    { role: "S", code: "S1", pos: 1, arrow: "Push to Net" },
-                    { role: "OH1", code: "OH1", pos: 1, arrow: "Pass & Shift" },
-                    { role: "M2", code: "M2", pos: 3, arrow: "Hit Center" },
-                    { role: "OP", code: "OP", pos: 4, arrow: "Hit Right" },
-                    { role: "OH2", code: "OH2", pos: 5, arrow: "Pass Left" },
-                    { role: "L", code: "L", pos: 6, arrow: "Pass Center" }
-                ]
-            },
-            2: {
-                serving: [
-                    { role: "OH1", code: "OH1", pos: 1, arrow: "Serving / Base 5" },
-                    { role: "S", code: "S1", pos: 6, arrow: "Shift to Pos 1" },
-                    { role: "L", code: "L", pos: 5, arrow: "Shift to Pos 6" },
-                    { role: "OH2", code: "OH2", pos: 4, arrow: "Base Pos 4" },
-                    { role: "OP", code: "OP", pos: 3, arrow: "Shift Right → Pos 2" },
-                    { role: "M2", code: "M2", pos: 2, arrow: "← Shift Left to Pos 3" }
-                ],
-                sr: [
-                    { role: "OH1", code: "OH1", pos: 1, arrow: "Pass Right" },
-                    { role: "S", code: "S1", pos: 3, arrow: "Run to Net" },
-                    { role: "L", code: "L", pos: 6, arrow: "Pass Center" },
-                    { role: "OH2", code: "OH2", pos: 5, arrow: "Pass Left" },
-                    { role: "OP", code: "OP", pos: 2, arrow: "Front Hit" },
-                    { role: "M2", code: "M2", pos: 3, arrow: "Front Hit" }
-                ]
-            },
-            3: {
-                serving: [
-                    { role: "L", code: "L", pos: 1, arrow: "Base Pos 6" },
-                    { role: "OH1", code: "OH1", pos: 6, arrow: "Shift to Pos 5" },
-                    { role: "S", code: "S1", pos: 5, arrow: "Shift Right → Pos 1" },
-                    { role: "OP", code: "OP", pos: 2, arrow: "Base Pos 2" },
-                    { role: "OH2", code: "OH2", pos: 3, arrow: "← Shift Left to Pos 4" },
-                    { role: "M1", code: "M1", pos: 4, arrow: "Shift Right → Pos 3" }
-                ],
-                sr: [
-                    { role: "L", code: "L", pos: 1, arrow: "Pass Center" },
-                    { role: "OH1", code: "OH1", pos: 6, arrow: "Pass Middle" },
-                    { role: "OH2", code: "OH2", pos: 5, arrow: "Pass Left" },
-                    { role: "S", code: "S1", pos: 5, arrow: "Run to Target" },
-                    { role: "OP", code: "OP", pos: 2, arrow: "Hit Right" },
-                    { role: "M1", code: "M1", pos: 4, arrow: "Hit Center" }
-                ]
-            },
-            4: {
-                serving: [
-                    { role: "S", code: "S2", pos: 1, arrow: "Sub S2 (Kathy/Kai) - Run Target" },
-                    { role: "OH1", code: "OH1", pos: 5, arrow: "Base Pos 5" },
-                    { role: "L", code: "L", pos: 6, arrow: "Base Pos 6" },
-                    { role: "OH2", code: "OH2", pos: 2, arrow: "← Cross to Pos 4" },
-                    { role: "M1", code: "M1", pos: 3, arrow: "Base Pos 3" },
-                    { role: "OP", code: "OP", pos: 4, arrow: "Shift Right → Pos 2" }
-                ],
-                sr: [
-                    { role: "S", code: "S2", pos: 1, arrow: "Push to Net" },
-                    { role: "OH2", code: "OH2", pos: 1, arrow: "Pass & Shift" },
-                    { role: "L", code: "L", pos: 6, arrow: "Pass Center" },
-                    { role: "OH1", code: "OH1", pos: 5, arrow: "Pass Left" },
-                    { role: "M1", code: "M1", pos: 3, arrow: "Hit Center" },
-                    { role: "OP", code: "OP", pos: 4, arrow: "Hit Right" }
-                ]
-            },
-            5: {
-                serving: [
-                    { role: "OH2", code: "OH2", pos: 1, arrow: "Serving / Base 5" },
-                    { role: "S", code: "S2", pos: 6, arrow: "Shift to Pos 1" },
-                    { role: "L", code: "L", pos: 5, arrow: "Shift to Pos 6" },
-                    { role: "OH1", code: "OH1", pos: 4, arrow: "Base Pos 4" },
-                    { role: "OP", code: "OP", pos: 3, arrow: "Shift Right → Pos 2" },
-                    { role: "M1", code: "M1", pos: 2, arrow: "← Shift Left to Pos 3" }
-                ],
-                sr: [
-                    { role: "OH2", code: "OH2", pos: 1, arrow: "Pass Right" },
-                    { role: "S", code: "S2", pos: 3, arrow: "Run to Net" },
-                    { role: "L", code: "L", pos: 6, arrow: "Pass Center" },
-                    { role: "OH1", code: "OH1", pos: 5, arrow: "Pass Left" },
-                    { role: "OP", code: "OP", pos: 2, arrow: "Front Hit" },
-                    { role: "M1", code: "M1", pos: 3, arrow: "Front Hit" }
-                ]
-            },
-            6: {
-                serving: [
-                    { role: "M1", code: "M1", pos: 1, arrow: "Serving / Shift Base 3" },
-                    { role: "OH2", code: "OH2", pos: 5, arrow: "Base Pos 5" },
-                    { role: "S", code: "S2", pos: 4, arrow: "Shift Right → Pos 1" },
-                    { role: "OP", code: "OP", pos: 2, arrow: "Base Pos 2" },
-                    { role: "OH1", code: "OH1", pos: 3, arrow: "← Shift Left to Pos 4" },
-                    { role: "M2", code: "M2", pos: 4, arrow: "Base Pos 3" }
-                ],
-                sr: [
-                    { role: "M1", code: "M1", pos: 1, arrow: "Pass Center" },
-                    { role: "OH2", code: "OH2", pos: 5, arrow: "Pass Left" },
-                    { role: "L", code: "L", pos: 6, arrow: "Pass Center" },
-                    { role: "S", code: "S2", pos: 3, arrow: "Run to Target" },
-                    { role: "OP", code: "OP", pos: 2, arrow: "Hit Right" },
-                    { role: "M2", code: "M2", pos: 4, arrow: "Hit Center" }
-                ]
-            }
+            1: [
+                { role: "S", code: "S1", startPos: 1, endPos: 2 },
+                { role: "OH1", code: "OH1", startPos: 2, endPos: 4 },
+                { role: "M2", code: "M2", startPos: 3, endPos: 3 },
+                { role: "OP", code: "OP", startPos: 4, endPos: 2 },
+                { role: "OH2", code: "OH2", startPos: 5, endPos: 5 },
+                { role: "L", code: "L", startPos: 6, endPos: 6 }
+            ],
+            2: [
+                { role: "OH1", code: "OH1", startPos: 1, endPos: 5 },
+                { role: "S", code: "S1", startPos: 6, endPos: 1 },
+                { role: "L", code: "L", startPos: 5, endPos: 6 },
+                { role: "OH2", code: "OH2", startPos: 4, endPos: 4 },
+                { role: "OP", code: "OP", startPos: 3, endPos: 2 },
+                { role: "M2", code: "M2", startPos: 2, endPos: 3 }
+            ],
+            3: [
+                { role: "L", code: "L", startPos: 1, endPos: 6 },
+                { role: "OH1", code: "OH1", startPos: 6, endPos: 5 },
+                { role: "S", code: "S1", startPos: 5, endPos: 1 },
+                { role: "OP", code: "OP", startPos: 2, endPos: 2 },
+                { role: "OH2", code: "OH2", startPos: 3, endPos: 4 },
+                { role: "M1", code: "M1", startPos: 4, endPos: 3 }
+            ],
+            4: [
+                { role: "S", code: "S2", startPos: 1, endPos: 2 },
+                { role: "OH1", code: "OH1", startPos: 5, endPos: 5 },
+                { role: "L", code: "L", startPos: 6, endPos: 6 },
+                { role: "OH2", code: "OH2", startPos: 2, endPos: 4 },
+                { role: "M1", code: "M1", startPos: 3, endPos: 3 },
+                { role: "OP", code: "OP", startPos: 4, endPos: 2 }
+            ],
+            5: [
+                { role: "OH2", code: "OH2", startPos: 1, endPos: 5 },
+                { role: "S", code: "S2", startPos: 6, endPos: 1 },
+                { role: "L", code: "L", startPos: 5, endPos: 6 },
+                { role: "OH1", code: "OH1", startPos: 4, endPos: 4 },
+                { role: "OP", code: "OP", startPos: 3, endPos: 2 },
+                { role: "M1", code: "M1", startPos: 2, endPos: 3 }
+            ],
+            6: [
+                { role: "M1", code: "M1", startPos: 1, endPos: 3 },
+                { role: "OH2", code: "OH2", startPos: 5, endPos: 5 },
+                { role: "S", code: "S2", startPos: 4, endPos: 1 },
+                { role: "OP", code: "OP", startPos: 2, endPos: 2 },
+                { role: "OH1", code: "OH1", startPos: 3, endPos: 4 },
+                { role: "M2", code: "M2", startPos: 4, endPos: 3 }
+            ]
         };
 
         function renderInputs() {
             const container = document.getElementById("playerInputs");
             let html = "";
-            const activeKeys = ["S1", "S2", "OH1", "OH2", "M1", "M2", "OP", "L"];
-            
-            activeKeys.forEach(key => {
-                html += `
-                    <div class="form-group">
-                        <label><strong>${key}</strong></label>
-                        <input type="text" value="${players[key]}" oninput="updatePlayer('${key}', this.value)">
-                    </div>
-                `;
+            ["S1", "S2", "OH1", "OH2", "M1", "M2", "OP", "L"].forEach(key => {
+                html += `<div class="form-group"><label><strong>${key}</strong></label><input type="text" value="${players[key]}" oninput="updatePlayer('${key}', this.value)"></div>`;
             });
             container.innerHTML = html;
             updateCourt();
         }
 
-        function updatePlayer(key, val) {
-            players[key] = val;
-            updateCourt();
-        }
-
+        function updatePlayer(key, val) { players[key] = val; updateCourt(); }
         function setPhase(p) {
             phase = p;
             document.getElementById("btnServing").className = p === 'serving' ? 'active' : 'secondary';
             document.getElementById("btnSR").className = p === 'sr' ? 'active' : 'secondary';
+            isShifted = false;
             updateCourt();
         }
 
-        function rotateCourt(direction) {
-            if (direction === 1) {
-                currentRotation = currentRotation === 6 ? 1 : currentRotation + 1;
-            } else {
-                currentRotation = currentRotation === 1 ? 6 : currentRotation - 1;
-            }
+        function toggleMotion() {
+            isShifted = !isShifted;
+            document.getElementById("btnMotion").innerText = isShifted ? "↺ Reset Original Position" : "▶ Animate Shift / Transition";
+            updateCourt();
+        }
+
+        function rotateCourt(dir) {
+            currentRotation = dir === 1 ? (currentRotation % 6 + 1) : (currentRotation === 1 ? 6 : currentRotation - 1);
+            isShifted = false;
+            document.getElementById("btnMotion").innerText = "▶ Animate Shift / Transition";
             updateCourt();
         }
 
         function updateCourt() {
             document.getElementById("rotNum").innerText = currentRotation;
-
-            // Show sub notice when back-row setter S2 enters (Rotations 4, 5, 6)
             document.getElementById("subAlert").style.display = currentRotation >= 4 ? 'block' : 'none';
 
-            const currentLayout = rotationData[currentRotation][phase];
-            const zoneIds = { 1: "pos1", 2: "pos2", 3: "pos3", 4: "pos4", 5: "pos5", 6: "pos6" };
+            const court = document.getElementById("courtArea");
+            court.innerHTML = "";
 
-            // Reset court
-            for (let i = 1; i <= 6; i++) {
-                document.getElementById(zoneIds[i]).innerHTML = "";
-            }
+            const layout = rotationData[currentRotation];
 
-            currentLayout.forEach(item => {
-                const name = players[item.code] || item.code;
-                const element = document.getElementById(zoneIds[item.pos]);
-                if (element) {
-                    element.innerHTML = `
-                        <div class="player-badge">${name}</div>
-                        <div class="role-badge role-${item.role}">${item.role}</div>
-                        <div class="arrow-indicator">${item.arrow}</div>
-                    `;
-                }
-            });
-        }
+            layout.forEach(p => {
+                const name = players[p.code] || p.code;
+                const posKey = isShifted ? p.endPos : p.startPos;
+                const coords = isShifted ? shiftedCoords[posKey] : standardCoords[posKey];
 
-        window.onload = renderInputs;
-    </script>
-</body>
-</html>            box-sizing: border-box;
-        }
+                const token = document.createElement("div");
+                token.className = "player-token";
+                token.style.left = `${coords.left}px`;
+                token.style.top = `${coords.top}px`;
 
-        .mode-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .mode-toggle button {
-            flex: 1;
-            padding: 8px;
-            font-size: 0.85em;
-        }
-
-        button {
-            padding: 10px 15px;
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-
-        button:hover { background-color: #45a049; }
-        button.secondary { background-color: #555; }
-        button.secondary:hover { background-color: #666; }
-        button.active { background-color: #2196F3; }
-
-        .court-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .net {
-            width: 340px;
-            height: 10px;
-            background: repeating-linear-gradient(45deg, #444, #444 5px, #222 5px, #222 10px);
-            border: 2px solid white;
-            margin-bottom: -2px;
-            z-index: 2;
-        }
-
-        .court {
-            width: 340px;
-            height: 340px;
-            background-color: var(--court-color);
-            border: 4px solid var(--line-color);
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            position: relative;
-        }
-
-        .court::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background-color: var(--line-color);
-        }
-
-        .zone {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 5px;
-            z-index: 1;
-            position: relative;
-        }
-
-        .player-badge {
-            background: #222;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 0.85em;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            margin-bottom: 2px;
-            max-width: 90%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .role-badge {
-            font-size: 0.7em;
-            background: var(--accent);
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: white;
-        }
-
-        .arrow-indicator {
-            font-size: 0.75em;
-            color: var(--arrow-color);
-            font-weight: bold;
-            margin-top: 2px;
-            background: rgba(0,0,0,0.6);
-            padding: 1px 4px;
-            border-radius: 3px;
-        }
-
-        .rotation-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .rot-circle {
-            background: #333;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-    <h1>Volleyball Rotation Tracker</h1>
-    <div class="subtitle">System: 13U Titans (Modified 6-2)</div>
-
-    <div class="container">
-        <!-- SETUP PANEL -->
-        <div class="setup-panel">
-            <div class="form-group">
-                <label><strong>Court View Mode</strong></label>
-                <div class="mode-toggle">
-                    <button id="btnBase" class="active" onclick="setMode('base')">Base Court</button>
-                    <button id="btnSR" class="secondary" onclick="setMode('sr')">Serve Receive</button>
-                </div>
-            </div>
-
-            <div id="playerInputs"></div>
-        </div>
-
-        <!-- COURT PANEL -->
-        <div class="court-panel">
-            <div class="net"></div>
-            <div class="court">
-                <!-- Front Row -->
-                <div class="zone" id="pos4"></div>
-                <div class="zone" id="pos3"></div>
-                <div class="zone" id="pos2"></div>
-                <!-- Back Row -->
-                <div class="zone" id="pos5"></div>
-                <div class="zone" id="pos6"></div>
-                <div class="zone" id="pos1"></div>
-            </div>
-
-            <div class="rotation-controls">
-                <button class="secondary" onclick="rotateCourt(-1)">Reverse</button>
-                <div class="rot-circle">R<span id="rotNum">1</span></div>
-                <button onclick="rotateCourt(1)">Rotate >></button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Custom 13U Titans Role Mapping
-        const roles = ["Setter 1", "Oppo", "Middle 1", "Outside 1", "Outside 2", "Libero"];
-        
-        let currentRotation = 1;
-        let viewMode = 'base'; // 'base' or 'sr'
-        
-        // Initial names pre-filled from your lineup
-        let playerNames = ["Nay Nay", "Teresa", "Reb", "Eiza", "Daisy", "Janelle"];
-
-        // Home base target positions for each role to calculate transition arrows
-        // Pos 4: Outside | Pos 3: Middle | Pos 2: Setter/Oppo
-        // Pos 5: Outside | Pos 6: Libero/Middle | Pos 1: Setter/Oppo
-        const homePositions = {
-            "Outside 1": 4, "Outside 2": 5,
-            "Middle 1": 3, "Libero": 6,
-            "Setter 1": 1, "Oppo": 2
-        };
-
-        const arrowMap = {
-            "left": "← Shift Left",
-            "right": "Shift Right →",
-            "up": "↑ Push Up",
-            "down": "↓ Drop Back",
-            "stay": "✓ Home Base"
-        };
-
-        function renderInputs() {
-            const container = document.getElementById("playerInputs");
-            let html = "";
-            roles.forEach((role, i) => {
-                html += `
-                    <div class="form-group">
-                        <label>${role} (Start Pos ${i+1})</label>
-                        <input type="text" id="player-${i}" value="${playerNames[i]}" placeholder="Enter name..." oninput="updateName(${i}, this.value)">
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-            updateCourt();
-        }
-
-        function updateName(index, val) {
-            playerNames[index] = val;
-            updateCourt();
-        }
-
-        function setMode(mode) {
-            viewMode = mode;
-            document.getElementById("btnBase").className = mode === 'base' ? 'active' : 'secondary';
-            document.getElementById("btnSR").className = mode === 'sr' ? 'active' : 'secondary';
-            updateCourt();
-        }
-
-        function rotateCourt(direction) {
-            if (direction === 1) {
-                // Clockwise rotation shift
-                playerNames.push(playerNames.shift());
-                roles.push(roles.shift());
-                currentRotation = currentRotation === 6 ? 1 : currentRotation + 1;
-            } else {
-                playerNames.unshift(playerNames.pop());
-                roles.unshift(roles.pop());
-                currentRotation = currentRotation === 1 ? 6 : currentRotation - 1;
-            }
-            renderInputs();
-        }
-
-        function getArrow(currentPos, role) {
-            const targetPos = homePositions[role];
-            if (!targetPos || currentPos === targetPos) return arrowMap["stay"];
-
-            // Simple directional helper logic
-            if (currentPos <= 3 && targetPos <= 3) { // Front Row
-                if (currentPos < targetPos) return "Shift Right →";
-                return "← Shift Left";
-            }
-            if (currentPos >= 4 && targetPos >= 4) { // Back Row
-                if (currentPos === 5 && targetPos === 6) return "Shift Right →";
-                if (currentPos === 5 && targetPos === 1) return "Shift Right →";
-                if (currentPos === 1 && targetPos === 6) return "← Shift Left";
-                if (currentPos === 1 && targetPos === 5) return "← Shift Left";
-            }
-            return `Target: P${targetPos}`;
-        }
-
-        function updateCourt() {
-            document.getElementById("rotNum").innerText = currentRotation;
-
-            // Map standard court positions [Pos1, Pos2, Pos3, Pos4, Pos5, Pos6]
-            const zoneIds = ["pos1", "pos2", "pos3", "pos4", "pos5", "pos6"];
-
-            zoneIds.forEach((id, i) => {
-                const currentPos = i + 1;
-                const name = playerNames[i].trim() !== "" ? playerNames[i] : `Player ${currentPos}`;
-                const role = roles[i];
-                
-                let arrowText = "";
-                if (viewMode === 'base') {
-                    arrowText = `<div class="arrow-indicator">${getArrow(currentPos, role)}</div>`;
-                } else {
-                    // Basic Serve Receive orientation indicator
-                    if (role.includes("Outside") || role.includes("Libero")) {
-                        arrowText = `<div class="arrow-indicator" style="color:#64B5F6;">Receiving</div>`;
-                    } else if (role.includes("Setter")) {
-                        arrowText = `<div class="arrow-indicator" style="color:#FFB74D;">Target Setter</div>`;
-                    } else {
-                        arrowText = `<div class="arrow-indicator" style="color:#81C784;">Cover/Hit</div>`;
-                    }
-                }
-
-                document.getElementById(id).innerHTML = `
+                token.innerHTML = `
                     <div class="player-badge">${name}</div>
-                    <div class="role-badge">${role}</div>
-                    ${arrowText}
+                    <div class="role-badge role-${p.role}">${p.role}</div>
                 `;
+                court.appendChild(token);
             });
         }
 
