@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volleyball Rotation Tracker</title>
+    <title>13U Titans Volleyball Rotations</title>
     <style>
         :root {
             --court-color: #e59c6b;
@@ -11,6 +11,7 @@
             --bg-color: #1a1a1a;
             --text-color: #f0f0f0;
             --accent: #4CAF50;
+            --arrow-color: #ffeb3b;
         }
 
         body {
@@ -24,12 +25,13 @@
             align-items: center;
         }
 
-        h1 { margin-bottom: 20px; }
+        h1 { margin-bottom: 5px; }
+        .subtitle { color: #888; margin-bottom: 20px; font-weight: bold; }
 
         .container {
             display: flex;
             flex-wrap: wrap;
-            gap: 40px;
+            gap: 30px;
             max-width: 1000px;
             width: 100%;
             justify-content: center;
@@ -40,7 +42,7 @@
             padding: 20px;
             border-radius: 8px;
             width: 100%;
-            max-width: 350px;
+            max-width: 320px;
         }
 
         .form-group {
@@ -64,6 +66,18 @@
             box-sizing: border-box;
         }
 
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mode-toggle button {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.85em;
+        }
+
         button {
             padding: 10px 15px;
             background-color: var(--accent);
@@ -78,6 +92,7 @@
         button:hover { background-color: #45a049; }
         button.secondary { background-color: #555; }
         button.secondary:hover { background-color: #666; }
+        button.active { background-color: #2196F3; }
 
         .court-panel {
             display: flex;
@@ -86,7 +101,7 @@
         }
 
         .net {
-            width: 320px;
+            width: 340px;
             height: 10px;
             background: repeating-linear-gradient(45deg, #444, #444 5px, #222 5px, #222 10px);
             border: 2px solid white;
@@ -95,8 +110,8 @@
         }
 
         .court {
-            width: 320px;
-            height: 320px;
+            width: 340px;
+            height: 340px;
             background-color: var(--court-color);
             border: 4px solid var(--line-color);
             display: grid;
@@ -108,7 +123,7 @@
         .court::after {
             content: '';
             position: absolute;
-            top: 33.33%;
+            top: 50%;
             left: 0;
             right: 0;
             height: 4px;
@@ -123,6 +138,7 @@
             text-align: center;
             padding: 5px;
             z-index: 1;
+            position: relative;
         }
 
         .player-badge {
@@ -133,7 +149,7 @@
             font-weight: bold;
             font-size: 0.85em;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             max-width: 90%;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -146,6 +162,16 @@
             padding: 2px 6px;
             border-radius: 4px;
             color: white;
+        }
+
+        .arrow-indicator {
+            font-size: 0.75em;
+            color: var(--arrow-color);
+            font-weight: bold;
+            margin-top: 2px;
+            background: rgba(0,0,0,0.6);
+            padding: 1px 4px;
+            border-radius: 3px;
         }
 
         .rotation-controls {
@@ -170,17 +196,17 @@
 <body>
 
     <h1>Volleyball Rotation Tracker</h1>
+    <div class="subtitle">System: 13U Titans (Modified 6-2)</div>
 
     <div class="container">
         <!-- SETUP PANEL -->
         <div class="setup-panel">
             <div class="form-group">
-                <label><strong>Rotation System</strong></label>
-                <select id="systemSelect" onchange="renderInputs()">
-                    <option value="5-1">5-1 (1 Setter, 1 Opposite)</option>
-                    <option value="6-2" selected>6-2 (2 Setters, 3 Hitters)</option>
-                    <option value="4-2">4-2 (2 Setters in Front Row)</option>
-                </select>
+                <label><strong>Court View Mode</strong></label>
+                <div class="mode-toggle">
+                    <button id="btnBase" class="active" onclick="setMode('base')">Base Court</button>
+                    <button id="btnSR" class="secondary" onclick="setMode('sr')">Serve Receive</button>
+                </div>
             </div>
 
             <div id="playerInputs"></div>
@@ -190,9 +216,11 @@
         <div class="court-panel">
             <div class="net"></div>
             <div class="court">
+                <!-- Front Row -->
                 <div class="zone" id="pos4"></div>
                 <div class="zone" id="pos3"></div>
                 <div class="zone" id="pos2"></div>
+                <!-- Back Row -->
                 <div class="zone" id="pos5"></div>
                 <div class="zone" id="pos6"></div>
                 <div class="zone" id="pos1"></div>
@@ -207,26 +235,40 @@
     </div>
 
     <script>
-        const systems = {
-            "5-1": ["Setter", "Outside 1", "Middle 1", "Opposite", "Outside 2", "Middle 2"],
-            "6-2": ["Setter 1", "Outside 1", "Middle 1", "Setter 2", "Outside 2", "Middle 2"],
-            "4-2": ["Setter 1", "Outside 1", "Middle 1", "Setter 2", "Outside 2", "Middle 2"]
+        // Custom 13U Titans Role Mapping
+        const roles = ["Setter 1", "Oppo", "Middle 1", "Outside 1", "Outside 2", "Libero"];
+        
+        let currentRotation = 1;
+        let viewMode = 'base'; // 'base' or 'sr'
+        
+        // Initial names pre-filled from your lineup
+        let playerNames = ["Nay Nay", "Teresa", "Reb", "Eiza", "Daisy", "Janelle"];
+
+        // Home base target positions for each role to calculate transition arrows
+        // Pos 4: Outside | Pos 3: Middle | Pos 2: Setter/Oppo
+        // Pos 5: Outside | Pos 6: Libero/Middle | Pos 1: Setter/Oppo
+        const homePositions = {
+            "Outside 1": 4, "Outside 2": 5,
+            "Middle 1": 3, "Libero": 6,
+            "Setter 1": 1, "Oppo": 2
         };
 
-        let currentRotation = 1;
-        let playerNames = ["", "", "", "", "", ""];
+        const arrowMap = {
+            "left": "← Shift Left",
+            "right": "Shift Right →",
+            "up": "↑ Push Up",
+            "down": "↓ Drop Back",
+            "stay": "✓ Home Base"
+        };
 
         function renderInputs() {
-            const system = document.getElementById("systemSelect").value;
-            const roles = systems[system];
             const container = document.getElementById("playerInputs");
-            
             let html = "";
             roles.forEach((role, i) => {
                 html += `
                     <div class="form-group">
-                        <label>${role} (Pos ${i+1})</label>
-                        <input type="text" id="player-${i}" value="${playerNames[i]}" placeholder="Enter player name..." oninput="updateName(${i}, this.value)">
+                        <label>${role} (Start Pos ${i+1})</label>
+                        <input type="text" id="player-${i}" value="${playerNames[i]}" placeholder="Enter name..." oninput="updateName(${i}, this.value)">
                     </div>
                 `;
             });
@@ -239,30 +281,74 @@
             updateCourt();
         }
 
+        function setMode(mode) {
+            viewMode = mode;
+            document.getElementById("btnBase").className = mode === 'base' ? 'active' : 'secondary';
+            document.getElementById("btnSR").className = mode === 'sr' ? 'active' : 'secondary';
+            updateCourt();
+        }
+
         function rotateCourt(direction) {
             if (direction === 1) {
+                // Clockwise rotation shift
                 playerNames.push(playerNames.shift());
+                roles.push(roles.shift());
                 currentRotation = currentRotation === 6 ? 1 : currentRotation + 1;
             } else {
                 playerNames.unshift(playerNames.pop());
+                roles.unshift(roles.pop());
                 currentRotation = currentRotation === 1 ? 6 : currentRotation - 1;
             }
             renderInputs();
         }
 
+        function getArrow(currentPos, role) {
+            const targetPos = homePositions[role];
+            if (!targetPos || currentPos === targetPos) return arrowMap["stay"];
+
+            // Simple directional helper logic
+            if (currentPos <= 3 && targetPos <= 3) { // Front Row
+                if (currentPos < targetPos) return "Shift Right →";
+                return "← Shift Left";
+            }
+            if (currentPos >= 4 && targetPos >= 4) { // Back Row
+                if (currentPos === 5 && targetPos === 6) return "Shift Right →";
+                if (currentPos === 5 && targetPos === 1) return "Shift Right →";
+                if (currentPos === 1 && targetPos === 6) return "← Shift Left";
+                if (currentPos === 1 && targetPos === 5) return "← Shift Left";
+            }
+            return `Target: P${targetPos}`;
+        }
+
         function updateCourt() {
             document.getElementById("rotNum").innerText = currentRotation;
-            const system = document.getElementById("systemSelect").value;
-            const roles = systems[system];
 
-            // Pos1, Pos2, Pos3, Pos4, Pos5, Pos6
+            // Map standard court positions [Pos1, Pos2, Pos3, Pos4, Pos5, Pos6]
             const zoneIds = ["pos1", "pos2", "pos3", "pos4", "pos5", "pos6"];
 
             zoneIds.forEach((id, i) => {
-                const name = playerNames[i].trim() !== "" ? playerNames[i] : `Player ${i+1}`;
+                const currentPos = i + 1;
+                const name = playerNames[i].trim() !== "" ? playerNames[i] : `Player ${currentPos}`;
+                const role = roles[i];
+                
+                let arrowText = "";
+                if (viewMode === 'base') {
+                    arrowText = `<div class="arrow-indicator">${getArrow(currentPos, role)}</div>`;
+                } else {
+                    // Basic Serve Receive orientation indicator
+                    if (role.includes("Outside") || role.includes("Libero")) {
+                        arrowText = `<div class="arrow-indicator" style="color:#64B5F6;">Receiving</div>`;
+                    } else if (role.includes("Setter")) {
+                        arrowText = `<div class="arrow-indicator" style="color:#FFB74D;">Target Setter</div>`;
+                    } else {
+                        arrowText = `<div class="arrow-indicator" style="color:#81C784;">Cover/Hit</div>`;
+                    }
+                }
+
                 document.getElementById(id).innerHTML = `
                     <div class="player-badge">${name}</div>
-                    <div class="role-badge">${roles[i]}</div>
+                    <div class="role-badge">${role}</div>
+                    ${arrowText}
                 `;
             });
         }
